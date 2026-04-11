@@ -33,7 +33,7 @@
   - Add tests proving the summary updates after download and after clear, and stays honest about its action-boundary freshness.
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 4.2_
 
-- [ ] 7. Extend the generic browser addon-action host seam with download/save support
+- [x] 7. Extend the generic browser addon-action host seam with download/save support
   - Add one generic host capability that addon actions can use to save downloadable bytes without importing browser internals.
   - Wire the generic addon action runner and UI flow so packaged addon actions can trigger that capability truthfully, without also pretending query-time runtime can mutate addon-local runtime-surface state.
   - Add browser-side tests proving missing capability fails honestly and present capability triggers the download path.

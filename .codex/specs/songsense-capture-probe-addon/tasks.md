@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Scaffold the capture-probe addon metadata and repo-owned diagnostic truth
+- [x] 1. Scaffold the capture-probe addon metadata and repo-owned diagnostic truth
   - Add addon metadata for one Stage 1 local-js SongSense adapter, two addon actions (`download_capture`, `clear_capture`), and one lightweight capture-summary runtime surface.
   - Keep the repo/package/report descriptions explicit that this addon is diagnostic-only, never performs recognition, and exposes action-boundary capture summary truth rather than live query-time surface mutation.
   - _Requirements: 2.1, 2.2, 7.1, 7.4_

@@ -1,0 +1,119 @@
+{
+  "addon": {
+    "addon_id": "axolync-addon-songsense-capture-probe",
+    "name": "Axolync SongSense Capture Probe Addon",
+    "version": "0.1.0",
+    "contracts_version": "1.4.0",
+    "description": "Diagnostic-only Stage 1 addon that captures the latest authoritative SongSense host window for export and never performs recognition.",
+    "requirements": [],
+    "addon_settings": [],
+    "addon_actions": [
+      {
+        "action_id": "download_capture",
+        "label": "Download Capture",
+        "description": "Encode the current retained capture as a WAV artifact and hand it to the generic host download seam.",
+        "category": "export",
+        "destructive": false,
+        "cancellable": false,
+        "progress_capable": false,
+        "confirmation_required": false,
+        "handler": {
+          "module_path": "actions/download-capture.js",
+          "export_name": "downloadCaptureAction"
+        }
+      },
+      {
+        "action_id": "clear_capture",
+        "label": "Clear Capture",
+        "description": "Clear the current session-scoped capture so the next probe starts from a known empty state.",
+        "category": "maintenance",
+        "destructive": true,
+        "cancellable": false,
+        "progress_capable": false,
+        "confirmation_required": true,
+        "handler": {
+          "module_path": "actions/clear-capture.js",
+          "export_name": "clearCaptureAction"
+        }
+      }
+    ],
+    "addon_runtime_data_surfaces": [
+      {
+        "surface_id": "capture_summary",
+        "label": "Capture Summary",
+        "sections": [
+          {
+            "section_id": "summary",
+            "label": "Current Capture",
+            "kind": "facts",
+            "facts": [
+              {
+                "fact_id": "has_capture",
+                "label": "Has capture",
+                "value": "No"
+              },
+              {
+                "fact_id": "duration_ms",
+                "label": "Duration",
+                "value": "0 ms"
+              },
+              {
+                "fact_id": "sample_rate_hz",
+                "label": "Sample rate",
+                "value": "n/a"
+              },
+              {
+                "fact_id": "channels",
+                "label": "Channels",
+                "value": "n/a"
+              },
+              {
+                "fact_id": "chunk_count",
+                "label": "Chunk count",
+                "value": "0"
+              },
+              {
+                "fact_id": "summary_freshness",
+                "label": "Summary freshness",
+                "value": "action-boundary"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "adapters": [
+      {
+        "adapter_id": "CaptureProbeSongSenseAdapter",
+        "label": "SongSense Capture Probe Adapter",
+        "description": "Diagnostic-only SongSense adapter that observes the real host audio window, keeps capture truth inside addon-owned scope, and intentionally never emits detections.",
+        "runtime_code_state": "partial",
+        "shippable_in_release": false,
+        "shippable_in_debug": true,
+        "hidden_in_ui": false,
+        "notes": "Session-scoped hosted-web same-realm diagnostic probe. Export depends on a generic addon action download/save host capability and the visible summary is action-boundary truth only.",
+        "host_mode": "local-js",
+        "supported_platforms": [
+          "web",
+          "android",
+          "desktop"
+        ],
+        "required_permissions": [],
+        "required_host_capabilities": [
+          "addon-action-download-save"
+        ],
+        "gating_settings": [],
+        "settings": [],
+        "implementation": {
+          "module_path": "adapters/CaptureProbeSongSenseAdapter/index.js",
+          "export_name": "CaptureProbeSongSenseAdapter"
+        },
+        "query_methods": {
+          "songsense": [
+            "query_song_candidates"
+          ]
+        }
+      }
+    ]
+  }
+}

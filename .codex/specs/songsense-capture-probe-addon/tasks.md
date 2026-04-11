@@ -17,7 +17,7 @@
   - Add tests proving the adapter never emits placeholder detections.
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 6.1, 6.2_
 
-- [ ] 4. Implement a deterministic WAV export path for the current capture
+- [x] 4. Implement a deterministic WAV export path for the current capture
   - Add an addon-local WAV PCM16 encoder that turns the current bounded capture into a standard downloadable artifact.
   - Add tests for header correctness, duration math, and deterministic byte output from known input.
   - _Requirements: 3.1, 3.3_

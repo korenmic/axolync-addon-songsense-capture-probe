@@ -2,7 +2,7 @@
 
 ## Summary
 
-Create `axolync-addon-songsense-capture-probe` as a dedicated diagnostic addon repo for a SongSense testing adapter that consumes the real Axolync audio-capture path, never reports a song detection, and instead lets the operator download the captured audio for external verification.
+Create `axolync-addon-songsense-capture-probe` as a dedicated diagnostic addon repo for a SongSense testing adapter that consumes the real Axolync audio-capture path, never reports a song detection, and instead lets the operator download the latest authoritative host-provided capture window for external verification.
 
 This addon exists to answer one practical debugging question honestly:
 
@@ -54,8 +54,8 @@ That makes a standalone addon repo more honest than burying this inside `axolync
 The operator should be able to:
 
 - pick the capture-probe addon as the active SongSense addon
-- let it accumulate a bounded recent capture while live listening runs normally
-- see lightweight addon-global capture state such as duration and sample rate
+- let it retain the latest honest SongSense host window while live listening runs normally
+- see lightweight addon-global capture state after action-boundary refreshes such as download or clear
 - click `Download Capture` and receive a standard audio file
 - click `Clear Capture` to reset the diagnostic buffer
 
@@ -94,7 +94,7 @@ The first implementation target should be:
 The adapter should:
 
 - consume the genuine SongSense query payload
-- append audio into a bounded recent-capture buffer
+- keep the latest authoritative host-provided rolling SongSense window rather than blindly appending overlapping windows
 - always return zero candidates
 
 ### Diagnostic Semantics
@@ -115,9 +115,15 @@ Specifically:
 
 - large binary audio payloads should not be shoved into primitive addon settings
 - lightweight summary state may live in addon-global settings or addon-local state only when that is size-appropriate
-- raw capture bytes should remain bounded and should be shared between the query path and addon actions through an honest addon-owned mechanism
+- raw capture bytes should remain bounded and should be shared between the query path and addon actions through an explicit honest addon-owned mechanism
 
-The first implementation may keep capture bytes session-scoped rather than promising durable cross-restart storage, but that decision must be explicit and reflected in docs and UI truth.
+The first implementation should keep capture bytes session-scoped only rather than promising durable cross-restart storage, and that decision must be explicit and reflected in docs and UI truth.
+
+The first implementation should also make the sharing mechanism explicit:
+
+- use a symbol-keyed `globalThis` session store keyed by addon identity
+- rely only on the current hosted-web Stage 1 behavior where query modules and addon action modules run in the same JS realm
+- scope support truthfully if a future host does not preserve that property
 
 ### Export Format
 
@@ -130,6 +136,10 @@ The format should be:
 - honest to the captured audio characteristics
 
 The first format should favor compatibility and manual inspection over theoretical preservation of every internal detail.
+
+The first default should be:
+
+- WAV PCM16
 
 ### Download Capability
 
@@ -155,6 +165,12 @@ The addon should expose a lightweight addon-global runtime surface summarizing c
 
 That runtime surface should remain semantic-only and should not try to render or transport raw bytes.
 
+For the first implementation, that runtime surface should reflect action-boundary truth only:
+
+- query-time capture updates may change the session-only in-memory buffer
+- the visible addon-global summary should refresh on addon actions such as `Download Capture` and `Clear Capture`
+- this seed should not pretend query-time adapters already have a generic host seam for immediate runtime-surface mutation
+
 ### Scope
 
 This seed should:
@@ -178,10 +194,10 @@ This seed should not:
 This seed should be considered successful when:
 
 - the repo exists as the honest home for the probe addon
-- the normal SongSense query path can accumulate a bounded recent capture without emitting detections
+- the normal SongSense query path can retain one honest latest host window without emitting detections
 - the operator has a truthful addon action path to download the current capture as a standard audio file
 - the operator can clear the current capture deliberately
-- addon-global runtime data shows lightweight capture truth without exposing raw bytes in the normal surface
+- addon-global runtime data shows lightweight action-boundary capture truth without exposing raw bytes in the normal surface
 - the feature helps isolate whether future recognition failures originate in Axolync capture, adapter wrapping, or downstream recognizer behavior
 
 ## Open Questions
@@ -190,9 +206,6 @@ This seed should be considered successful when:
    - extend `AddonActionContext` with a download/save capability
    - or teach the host to interpret a structured action result as a download request?
 
-2. Should the first capture buffer be strictly session-scoped only, or should it survive page refresh until the operator explicitly clears it?
-
-3. What exact export format should be the first default:
-   - WAV PCM16
-   - WAV Float32
-   - or another format that stays both honest and manually convenient?
+2. If a future host splits Stage 1 query modules and addon action modules across different JS realms, should this diagnostic addon:
+   - stay hosted-web only
+   - or drive a follow-on generic cross-realm capture-state seam first?

@@ -9,17 +9,18 @@
 The addon deliberately does not attempt recognition. Instead, it:
 
 - consumes the normal SongSense query payload
-- appends audio into a bounded recent-capture session buffer
+- retains the latest authoritative SongSense host window in session memory
 - exposes a lightweight addon-global capture summary
 - offers addon actions to download or clear the current capture
 
 This design keeps the first implementation narrow and truthful:
 
 - one local-js SongSense adapter
-- one bounded session capture store
+- one explicit hosted-web session capture store
 - one deterministic export format
 - generic addon action ownership for active operations
 - explicit browser-host follow-on for addon-driven file download
+- no promise of live query-time runtime-surface mutation
 
 ## Architecture
 
@@ -28,11 +29,12 @@ This design keeps the first implementation narrow and truthful:
 ```mermaid
 flowchart TD
   A[Axolync SongSense audio window] --> B[CaptureProbeSongSenseAdapter]
-  B --> C[Addon-owned bounded capture store]
-  C --> D[Capture summary runtime surface]
+  B --> C[Addon-owned latest-window session store]
   C --> E[Download Capture addon action]
   C --> F[Clear Capture addon action]
   E --> G[Generic host download/save capability]
+  E --> D[Persisted action-boundary capture summary]
+  F --> D[Persisted action-boundary capture summary]
 ```
 
 ### Design Decisions
@@ -41,19 +43,25 @@ flowchart TD
    - The adapter always returns `[]`.
    - This addon exists to capture and export audio truth, not to rank candidates.
 
-2. Keep raw bytes session-scoped first.
-   - The first implementation should use an addon-owned in-memory session store shared by the adapter and action handlers.
-   - This avoids pretending that large raw audio belongs in primitive settings or persisted typed runtime truth.
+2. Keep the retained capture equal to the latest honest host window.
+   - The current browser host delivers rolling SongSense windows, not append-only delta chunks.
+   - The probe should therefore replace the retained capture with the newest authoritative host window instead of blindly appending overlapping audio.
 
-3. Keep summary truth lightweight and semantic.
+3. Keep raw bytes session-scoped first, but make the sharing mechanism explicit.
+   - The first implementation should use an addon-owned symbol-keyed `globalThis` session store shared by the adapter and action handlers.
+   - This relies on the current hosted-web Stage 1 behavior where both query modules and addon action modules execute in the same JS realm.
+   - The addon must scope that support truthfully rather than implying this works on every future host.
+
+4. Keep summary truth lightweight and semantic.
    - The addon-global runtime surface exposes only metadata such as duration, sample rate, channels, and chunk count.
    - Raw bytes remain outside the normal UI.
+   - Because the current query-time host seam cannot mutate addon-local runtime state, the visible summary should refresh on addon action boundaries only.
 
-4. Use a standard export format optimized for manual tooling.
+5. Use a standard export format optimized for manual tooling.
    - The first export format should be WAV PCM16.
    - That format is simple, deterministic, widely playable, and easier to test outside Axolync than a custom raw dump.
 
-5. Treat download as a real host seam.
+6. Treat download as a real host seam.
    - The addon should not import browser code to trigger a save.
    - The browser host should expose a generic addon action download/save capability through the documented action seam.
 
@@ -64,8 +72,9 @@ flowchart TD
 Responsibilities:
 
 - validate incoming SongSense audio payloads
-- append usable audio into the bounded capture store
-- trim older audio when the bounded window is exceeded
+- compare incoming audio-time metadata to the currently retained host window
+- replace the retained capture only when the incoming host window is newer
+- suppress stale or non-advancing windows
 - emit structured capture diagnostics
 - always return zero candidates
 
@@ -101,13 +110,14 @@ interface CaptureProbeQueryInput {
 
 ### 2. `runtime/captureSessionStore`
 
-Introduce one addon-owned shared module that holds bounded session capture state on `globalThis`, keyed by addon id and version.
+Introduce one addon-owned shared module that holds the latest retained capture state on `globalThis`, keyed by addon id and version through a symbol-backed registry.
 
 Why this choice for the first implementation:
 
 - it keeps raw bytes out of primitive settings
 - it does not require a new query-time persistence seam from browser immediately
-- it gives both the adapter and addon actions one honest addon-owned session store without importing browser internals
+- it gives both the adapter and addon actions one explicit addon-owned session store without importing browser internals or relying on accidental module-singleton sharing
+- it matches the current hosted-web Stage 1 realm model honestly
 
 Stored shape:
 
@@ -117,7 +127,8 @@ interface CaptureSessionState {
   channels: number;
   chunkCount: number;
   totalSampleCount: number;
-  boundedWindowMs: number;
+  captureEndAudioMs: number | null;
+  bufferStartAudioMs: number | null;
   updatedAtIso: string | null;
   audioBuffer: Float32Array;
 }
@@ -125,13 +136,14 @@ interface CaptureSessionState {
 
 Policy:
 
-- keep the most recent bounded window only
-- reject incompatible chunk shape changes within one live session unless explicitly reset
-- log when incompatible shape causes a reset
+- keep the most recent authoritative host window only
+- reject stale or non-advancing windows by comparing `captureEndAudioMs`
+- reset explicitly if incompatible sample rate or channel shape appears
+- log replacement, suppression, and reset decisions
 
 ### 3. `runtime/captureSummary`
 
-This helper maps session store state into the lightweight runtime-surface summary.
+This helper maps session store state into the lightweight persisted summary snapshot used by the runtime surface.
 
 Surface content should include:
 
@@ -143,6 +155,8 @@ Surface content should include:
 - `updatedAtIso`
 
 The runtime surface should expose these as semantic facts or a single informational item, not as raw bytes or executable UI hints.
+
+Because query-time runtime does not currently own addon-local state mutation hooks, the persisted summary should be written by addon actions after they inspect or clear the session store.
 
 ### 4. `runtime/wavExport`
 
@@ -175,6 +189,7 @@ Responsibilities:
 - fail explicitly when no capture exists
 - encode the capture as WAV PCM16
 - ask the host to save/download the file through a generic addon action capability
+- persist a fresh action-boundary summary snapshot after the action inspects the current capture
 - report structured progress or completion details
 
 The intended host seam addition is:
@@ -196,6 +211,7 @@ If the browser-side host capability is unavailable, the action must fail with an
 Responsibilities:
 
 - clear the current session capture from the addon-owned store
+- persist an empty action-boundary summary snapshot
 - emit a structured diagnostic outcome
 - refresh the runtime-surface summary back to empty
 
@@ -225,7 +241,8 @@ interface BoundedCaptureState {
   channels: number;
   audioBuffer: Float32Array;
   chunkCount: number;
-  boundedWindowMs: number;
+  captureEndAudioMs: number | null;
+  bufferStartAudioMs: number | null;
   updatedAtIso: string | null;
 }
 ```
@@ -240,6 +257,8 @@ interface CaptureSummaryView {
   channels: number | null;
   chunkCount: number;
   updatedAtIso: string | null;
+  captureEndAudioMs: number | null;
+  summaryFreshness: 'action-boundary';
 }
 ```
 
@@ -268,7 +287,11 @@ interface DownloadCaptureActionOutcome {
 - Sample-rate or channel mismatch against existing session capture:
   - reset the session capture explicitly
   - log the reset reason
-  - append the new audio as the start of a fresh capture
+  - replace the retained capture with the new authoritative host window
+
+- Older or non-advancing host window:
+  - keep the prior retained capture
+  - log the stale-window suppression reason
 
 ### Download Errors
 
@@ -292,8 +315,8 @@ interface DownloadCaptureActionOutcome {
 ### Addon Repo Tests
 
 1. Unit-test the bounded capture store.
-   - append
-   - trim
+   - replace-with-newer-window
+   - suppress-stale-window
    - incompatible-shape reset
    - clear
 
@@ -303,7 +326,8 @@ interface DownloadCaptureActionOutcome {
    - PCM16 conversion behavior
 
 3. Unit-test the adapter.
-   - usable audio appends capture
+   - usable newer audio replaces capture
+   - stale audio does not replace capture
    - missing audio returns `[]`
    - probe never emits candidates
    - structured diagnostics fire
@@ -318,7 +342,7 @@ interface DownloadCaptureActionOutcome {
 
 1. Extend the generic addon action runner tests for a host download/save capability.
 2. Add a browser integration proof that running `Download Capture` from the packaged addon triggers the generic download/save path.
-3. Add a runtime-surface proof that capture summary refreshes after append and clear actions.
+3. Add a runtime-surface proof that capture summary refreshes after download and clear actions, and does not promise immediate query-time live updates without a broader host seam.
 
 ### Manual Verification
 

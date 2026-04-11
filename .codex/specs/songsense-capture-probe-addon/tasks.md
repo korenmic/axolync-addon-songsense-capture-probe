@@ -44,3 +44,8 @@
   - Document the first implementation's scope truthfully, especially that raw capture is session-scoped only, sharing is hosted-web same-realm only, and visible summary is action-boundary truth rather than live query-time mutation.
   - Add packaging/report checks that keep those surfaces aligned.
   - _Requirements: 5.2, 5.3, 5.4, 7.1, 7.2, 7.4_
+
+- [x] 9. Surface standalone export addon actions alongside runtime surfaces so `Download Capture` is visible and runnable
+  - Update the generic Addons-route runtime-surface rendering path so non-item-bound standalone export actions are not hidden just because a runtime surface exists.
+  - Add browser-side tests proving a capture-probe-style addon shows both `Download Capture` and `Clear Capture`, and that clicking `Download Capture` reaches the generic save seam from the rendered button.
+  - _Requirements: 3.1, 3.4, 7.2, 7.3, 7.4_

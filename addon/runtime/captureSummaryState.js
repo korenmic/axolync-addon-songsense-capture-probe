@@ -28,9 +28,68 @@ export function buildCaptureSummarySnapshot(captureState) {
   };
 }
 
+function formatCaptureValue(value, suffix = '') {
+  if (value === null || value === undefined || value === '') {
+    return 'n/a';
+  }
+  return `${value}${suffix}`;
+}
+
+export function buildCaptureSummaryRuntimeSurfaces(summary = buildCaptureSummarySnapshot(null)) {
+  return [
+    {
+      surfaceId: 'capture_summary',
+      label: 'Capture Summary',
+      sections: [
+        {
+          sectionId: 'summary',
+          label: 'Current Capture',
+          kind: 'facts',
+          facts: [
+            {
+              factId: 'has_capture',
+              label: 'Has capture',
+              value: summary.hasCapture ? 'Yes' : 'No',
+            },
+            {
+              factId: 'duration_ms',
+              label: 'Duration',
+              value: `${summary.durationMs} ms`,
+            },
+            {
+              factId: 'sample_rate_hz',
+              label: 'Sample rate',
+              value: formatCaptureValue(summary.sampleRateHz, ' Hz'),
+            },
+            {
+              factId: 'channels',
+              label: 'Channels',
+              value: formatCaptureValue(summary.channels),
+            },
+            {
+              factId: 'chunk_count',
+              label: 'Chunk count',
+              value: String(summary.chunkCount),
+            },
+            {
+              factId: 'summary_freshness',
+              label: 'Summary freshness',
+              value: summary.summaryFreshness,
+            },
+          ],
+        },
+      ],
+    },
+  ];
+}
+
 export async function persistCaptureSummarySnapshot(context, captureState) {
   const summary = buildCaptureSummarySnapshot(captureState);
   await context.setAddonLocalStateValue(CAPTURE_SUMMARY_SNAPSHOT_STATE_KEY, summary);
+  await context.setAddonLocalStateValue(
+    ADDON_RUNTIME_DATA_SURFACES_STATE_KEY,
+    buildCaptureSummaryRuntimeSurfaces(summary),
+  );
   return summary;
 }
 

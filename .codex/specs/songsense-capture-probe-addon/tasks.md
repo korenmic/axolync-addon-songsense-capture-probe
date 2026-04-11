@@ -27,7 +27,7 @@
   - Keep outcomes and logs explicit for no-capture, success, and failure paths.
   - _Requirements: 3.1, 3.2, 4.1, 4.2, 5.1, 6.3, 6.4_
 
-- [ ] 6. Surface lightweight action-boundary capture summary through the addon-global runtime surface
+- [x] 6. Surface lightweight action-boundary capture summary through the addon-global runtime surface
   - Expose semantic capture facts such as existence, duration, sample rate, channels, and chunk count without surfacing raw bytes.
   - Keep the visible summary explicitly action-boundary only, written by addon actions rather than by query-time mutation hooks that do not exist yet.
   - Add tests proving the summary updates after download and after clear, and stays honest about its action-boundary freshness.

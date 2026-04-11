@@ -6,6 +6,7 @@ import { clearCaptureAction } from '../addon/actions/clearCaptureAction.js';
 import { replaceCaptureSessionWindow, getCaptureSessionState, resetCaptureSessionStoreForTests } from '../addon/runtime/captureSessionStore.js';
 import {
   CAPTURE_LAST_DIAGNOSTIC_STATE_KEY,
+  ADDON_RUNTIME_DATA_SURFACES_STATE_KEY,
   CAPTURE_SUMMARY_SNAPSHOT_STATE_KEY,
 } from '../addon/runtime/captureSummaryState.js';
 
@@ -44,6 +45,10 @@ test('downloadCaptureAction returns an explicit no-capture outcome and persists 
   assert.equal(result.status, 'no-capture');
   assert.equal(context.addonLocalState[CAPTURE_SUMMARY_SNAPSHOT_STATE_KEY].hasCapture, false);
   assert.equal(context.addonLocalState[CAPTURE_LAST_DIAGNOSTIC_STATE_KEY].reason, 'no-capture');
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'summary_freshness')?.value,
+    'action-boundary',
+  );
 });
 
 test('downloadCaptureAction encodes and saves the retained capture when the host provides a save capability', async () => {
@@ -76,6 +81,18 @@ test('downloadCaptureAction encodes and saves the retained capture when the host
   assert.equal(saved[0].mimeType, 'audio/wav');
   assert.equal(saved[0].byteLength > 44, true);
   assert.equal(context.addonLocalState[CAPTURE_SUMMARY_SNAPSHOT_STATE_KEY].hasCapture, true);
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'duration_ms')?.value,
+    '0 ms',
+  );
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'sample_rate_hz')?.value,
+    '44100 Hz',
+  );
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'chunk_count')?.value,
+    '1',
+  );
 });
 
 test('downloadCaptureAction fails truthfully when the host save capability is missing', async () => {
@@ -99,6 +116,10 @@ test('downloadCaptureAction fails truthfully when the host save capability is mi
     /saveBytesAsDownload/i,
   );
   assert.equal(context.addonLocalState[CAPTURE_LAST_DIAGNOSTIC_STATE_KEY].reason, 'missing-download-capability');
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'has_capture')?.value,
+    'Yes',
+  );
 });
 
 test('clearCaptureAction clears the retained capture and persists an empty summary snapshot', async () => {
@@ -124,4 +145,8 @@ test('clearCaptureAction clears the retained capture and persists an empty summa
   assert.equal(getCaptureSessionState(addonIdentity), null);
   assert.equal(context.addonLocalState[CAPTURE_SUMMARY_SNAPSHOT_STATE_KEY].hasCapture, false);
   assert.equal(context.addonLocalState[CAPTURE_LAST_DIAGNOSTIC_STATE_KEY].reason, 'cleared');
+  assert.equal(
+    context.addonLocalState[ADDON_RUNTIME_DATA_SURFACES_STATE_KEY]?.[0]?.sections?.[0]?.facts?.find((fact) => fact.factId === 'has_capture')?.value,
+    'No',
+  );
 });

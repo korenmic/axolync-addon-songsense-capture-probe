@@ -1,50 +1,7 @@
 import captureProbeSongSenseAdapter from './adapters/CaptureProbeSongSenseAdapter/adapter.meta.mjs';
 import { downloadCaptureAction } from './actions/downloadCaptureAction.js';
 import { clearCaptureAction } from './actions/clearCaptureAction.js';
-
-const captureSummarySurface = Object.freeze({
-  surfaceId: 'capture_summary',
-  label: 'Capture Summary',
-  sections: Object.freeze([
-    Object.freeze({
-      sectionId: 'summary',
-      label: 'Current Capture',
-      kind: 'facts',
-      facts: Object.freeze([
-        Object.freeze({
-          factId: 'has_capture',
-          label: 'Has capture',
-          value: 'No',
-        }),
-        Object.freeze({
-          factId: 'duration_ms',
-          label: 'Duration',
-          value: '0 ms',
-        }),
-        Object.freeze({
-          factId: 'sample_rate_hz',
-          label: 'Sample rate',
-          value: 'n/a',
-        }),
-        Object.freeze({
-          factId: 'channels',
-          label: 'Channels',
-          value: 'n/a',
-        }),
-        Object.freeze({
-          factId: 'chunk_count',
-          label: 'Chunk count',
-          value: '0',
-        }),
-        Object.freeze({
-          factId: 'summary_freshness',
-          label: 'Summary freshness',
-          value: 'action-boundary',
-        }),
-      ]),
-    }),
-  ]),
-});
+import { buildCaptureSummaryRuntimeSurfaces } from './runtime/captureSummaryState.js';
 
 export default Object.freeze({
   addonId: 'axolync-addon-songsense-capture-probe',
@@ -83,7 +40,7 @@ export default Object.freeze({
     }),
   ]),
   addonRuntimeDataSurfaces: Object.freeze([
-    captureSummarySurface,
+    Object.freeze(buildCaptureSummaryRuntimeSurfaces()[0]),
   ]),
   adapters: Object.freeze([
     captureProbeSongSenseAdapter,

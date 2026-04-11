@@ -11,7 +11,7 @@
   - Add tests for replace-with-newer-window, stale-window suppression, shape-reset, and clear behavior.
   - _Requirements: 1.1, 1.2, 1.3, 5.1, 5.2, 5.3_
 
-- [ ] 3. Implement the SongSense probe adapter that captures but never detects
+- [x] 3. Implement the SongSense probe adapter that captures but never detects
   - Consume the real SongSense query payload, compare incoming audio-time metadata, replace the retained capture only when the host window is newer, and always return zero candidates.
   - Emit structured diagnostics for replace, stale-window suppression, skip, and reset outcomes.
   - Add tests proving the adapter never emits placeholder detections.

@@ -16,6 +16,9 @@ test('buildManifest describes the capture-probe addon as diagnostic-only with tw
   assert.equal(manifest.addon.addon_runtime_data_surfaces.length, 1);
   assert.equal(manifest.addon.addon_runtime_data_surfaces[0]?.surface_id, 'capture_summary');
   assert.equal(manifest.addon.adapters[0]?.adapter_id, 'CaptureProbeSongSenseAdapter');
+  assert.equal(manifest.addon.adapters[0]?.runtime_code_state, 'implemented');
+  assert.equal(manifest.addon.adapters[0]?.required_host_capabilities?.[0], 'addon-action-download-save');
+  assert.match(manifest.addon.adapters[0]?.notes ?? '', /action-boundary truth only/i);
   assert.equal(manifest.addon.adapters[0]?.query_methods?.songsense?.[0], 'query_song_candidates');
 });
 

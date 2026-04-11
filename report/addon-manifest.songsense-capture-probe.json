@@ -86,12 +86,12 @@
       {
         "adapter_id": "CaptureProbeSongSenseAdapter",
         "label": "SongSense Capture Probe Adapter",
-        "description": "Diagnostic-only SongSense adapter that observes the real host audio window, keeps capture truth inside addon-owned scope, and intentionally never emits detections.",
-        "runtime_code_state": "partial",
+        "description": "Diagnostic-only SongSense adapter that retains the latest authoritative host audio window, exports it through addon actions, and intentionally never emits detections.",
+        "runtime_code_state": "implemented",
         "shippable_in_release": false,
         "shippable_in_debug": true,
         "hidden_in_ui": false,
-        "notes": "Session-scoped hosted-web same-realm diagnostic probe. Export depends on a generic addon action download/save host capability and the visible summary is action-boundary truth only.",
+        "notes": "Session-scoped hosted-web same-realm diagnostic probe. Download and clear run through generic addon actions, and the visible summary stays action-boundary truth only.",
         "host_mode": "local-js",
         "supported_platforms": [
           "web",

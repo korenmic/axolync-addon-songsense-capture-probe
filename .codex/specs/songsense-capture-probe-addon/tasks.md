@@ -39,7 +39,7 @@
   - Add browser-side tests proving missing capability fails honestly and present capability triggers the download path.
   - _Requirements: 3.4, 7.2, 7.3, 7.4_
 
-- [ ] 8. Align package, report, and repo-facing docs with the real diagnostic behavior
+- [x] 8. Align package, report, and repo-facing docs with the real diagnostic behavior
   - Keep addon/package/report truth aligned around “retain the latest host window, export it, never detect.”
   - Document the first implementation's scope truthfully, especially that raw capture is session-scoped only, sharing is hosted-web same-realm only, and visible summary is action-boundary truth rather than live query-time mutation.
   - Add packaging/report checks that keep those surfaces aligned.

@@ -5,7 +5,7 @@
   - Keep the repo/package/report descriptions explicit that this addon is diagnostic-only, never performs recognition, and exposes action-boundary capture summary truth rather than live query-time surface mutation.
   - _Requirements: 2.1, 2.2, 7.1, 7.4_
 
-- [ ] 2. Implement the explicit hosted-web session capture store and latest-window policy
+- [x] 2. Implement the explicit hosted-web session capture store and latest-window policy
   - Add a symbol-keyed `globalThis` runtime module that keeps the current retained capture in session memory, keyed safely for addon identity on the current hosted-web Stage 1 host.
   - Keep binary capture bytes out of primitive addon-global settings and encode the policy as latest-authoritative-host-window only, with stale-window suppression instead of overlapping append behavior.
   - Add tests for replace-with-newer-window, stale-window suppression, shape-reset, and clear behavior.

@@ -22,7 +22,7 @@
   - Add tests for header correctness, duration math, and deterministic byte output from known input.
   - _Requirements: 3.1, 3.3_
 
-- [ ] 5. Implement addon actions for `download_capture` and `clear_capture`
+- [x] 5. Implement addon actions for `download_capture` and `clear_capture`
   - Add action handlers that read the current capture from the explicit session store, fail truthfully when it is absent, download the encoded WAV, clear the session capture when requested, and persist an action-boundary summary snapshot.
   - Keep outcomes and logs explicit for no-capture, success, and failure paths.
   - _Requirements: 3.1, 3.2, 4.1, 4.2, 5.1, 6.3, 6.4_

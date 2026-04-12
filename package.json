@@ -1,0 +1,16 @@
+{
+  "name": "axolync-addon-songsense-capture-probe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Diagnostic Stage 1 SongSense addon that captures the latest host audio window for export and never performs recognition.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "package": "node scripts/build-addon-package.mjs",
+    "report:manifest": "node scripts/write-report-manifest.mjs",
+    "test": "node --test tests/*.node.test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

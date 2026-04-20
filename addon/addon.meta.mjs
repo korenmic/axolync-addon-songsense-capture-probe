@@ -7,7 +7,7 @@ export default Object.freeze({
   addonId: 'axolync-addon-songsense-capture-probe',
   name: 'Axolync SongSense Capture Probe Addon',
   version: '0.1.0',
-  contractsVersion: '1.4.0',
+  contractsVersion: '2.0.0',
   description: 'Diagnostic-only Stage 1 addon that captures the latest authoritative SongSense host window for export and never performs recognition.',
   requirements: Object.freeze([]),
   addonSettings: Object.freeze([]),

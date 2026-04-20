@@ -11,6 +11,7 @@ test('buildManifest describes the capture-probe addon as diagnostic-only with tw
   const manifest = buildManifest();
 
   assert.equal(manifest.addon.addon_id, 'axolync-addon-songsense-capture-probe');
+  assert.equal(manifest.addon.contracts_version, '2.0.0');
   assert.match(manifest.addon.description ?? '', /diagnostic-only/i);
   assert.equal(manifest.addon.addon_actions.length, 2);
   assert.equal(manifest.addon.addon_runtime_data_surfaces.length, 1);

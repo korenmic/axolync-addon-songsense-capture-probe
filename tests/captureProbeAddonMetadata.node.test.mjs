@@ -5,6 +5,7 @@ import addon from '../addon/addon.meta.mjs';
 
 test('capture-probe addon metadata exposes one diagnostic SongSense adapter, two addon actions, and one runtime summary surface', () => {
   assert.equal(addon.addonId, 'axolync-addon-songsense-capture-probe');
+  assert.equal(addon.contractsVersion, '2.0.0');
   assert.equal(addon.adapters.length, 1);
   assert.equal(addon.adapters[0]?.adapterId, 'CaptureProbeSongSenseAdapter');
   assert.equal(addon.addonActions.length, 2);

@@ -1,0 +1,44 @@
+schema = "axolync.repo/v1"
+
+[repo]
+id = "axolync-addon-songsense-capture-probe"
+roles = ["consumable"]
+display_name = "Axolync SongSense Capture Probe Addon"
+description = "Diagnostic Stage 1 SongSense addon exposing retained capture windows without recognition."
+
+[source]
+git_url = "https://github.com/korenmic/axolync-addon-songsense-capture-probe.git"
+default_ref = "master"
+local_dev_path_hint = "../axolync-addon-songsense-capture-probe"
+
+[bootstrap]
+install_mode = "managed-clone"
+install_root = ".axolync/repos"
+readme = "README.md"
+agent_docs = ["README.md", "docs/project-seeds"]
+
+[exports.tests]
+full = "npm test"
+smoke = "npm test"
+
+[exports.seeds]
+roots = ["docs/project-seeds"]
+
+[exports.docs]
+bootstrap = ["README.md"]
+standards = ["docs/project-seeds"]
+
+[exports.packaging]
+command = "npm run package"
+outputs = ["artifacts/output/local_js/axolync-addon-songsense-capture-probe-local_js.zip"]
+
+[[exports.inventories]]
+name = "adapter-catalog"
+path = "report/addon-manifest.songsense-capture-probe.json"
+format = "json"
+
+[[consumes.repos]]
+id = "axolync-contract"
+use = "schema-and-runtime-contracts"
+required = true
+source = "managed"
